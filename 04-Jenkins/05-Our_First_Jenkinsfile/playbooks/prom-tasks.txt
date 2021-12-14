@@ -1,0 +1,59 @@
+# Some resources used: 
+# https://linoxide.com/install-prometheus-ubuntu/
+
+wget https://github.com/prometheus/prometheus/releases/download/v2.30.3/prometheus-2.30.3.linux-amd64.tar.gz
+tar xvf prom*
+cd prometheus
+
+groupadd --system prometheus
+grep prometheus /etc/group
+
+useradd -s /sbin/nologin -r -g prometheus prometheus
+id prometheus
+
+mkdir -p /etc/prometheus/{rules,rules.d,files_sd}  /var/lib/prometheus
+
+cp prometheus promtool /usr/local/bin/
+ls /usr/local/bin/
+
+cp -r consoles/ console_libraries/ /etc/prometheus/
+
+vim /etc/systemd/system/prometheus.service
+
+[Unit]
+Description=Prometheus systemd service unit
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=prometheus
+Group=prometheus
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStart=/usr/local/bin/prometheus \
+--config.file=/etc/prometheus/prometheus.yml \
+--storage.tsdb.path=/var/lib/prometheus \
+--web.console.templates=/etc/prometheus/consoles \
+--web.console.libraries=/etc/prometheus/console_libraries \
+--web.listen-address=0.0.0.0:9090
+
+SyslogIdentifier=prometheus
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+vim /etc/prometheus/prometheus.yml
+
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+scrape_configs:
+  - job_name: 'node'
+    static_configs:
+      - targets: ['localhost:9100']
+
+chown -R prometheus:prometheus /etc/prometheus /var/lib/prometheus
+chmod -R 775 /etc/prometheus/ /var/lib/prometheus/
+
+systemctl start prometheus
+systemctl enable prometheus

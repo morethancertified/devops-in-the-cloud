@@ -1,0 +1,10 @@
+---
+- name: Install Grafana
+  hosts: hosts
+  become: yes
+  
+  tasks:
+  - name: download apt key
+  - name: Add Grafana repo to sources.list
+  - name: Update apt cache and install grafana
+  - name: Make sure grafana is started
