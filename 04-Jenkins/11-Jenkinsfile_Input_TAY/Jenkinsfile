@@ -21,6 +21,9 @@ pipeline {
                 message "Do you want to Apply this plan?"
                 ok "Apply"
             }
+            steps {
+                echo 'Apply Accepted'
+            }
         }
         stage('Apply') {
             steps {
@@ -34,8 +37,11 @@ pipeline {
         }
         stage('Validate Ansible') {
             input {
-                message "Do you want run this Ansible Playbook?"
-                ok "Run!"
+                message "Do you want to run Ansible?"
+                ok "Run Ansible"
+            }
+            steps {
+                echo 'Ansible Approved'
             }
         }
         stage('Ansible') {
@@ -45,8 +51,11 @@ pipeline {
         }
         stage('Validate Destroy') {
             input {
-                message "Do you want to destroy this infrastructure?"
-                ok "Destroy!"
+                message "Do you want to destroy?"
+                ok "Destroy"
+            }
+            steps {
+                echo 'Destroy Approved'
             }
         }
         stage('Destroy') {
