@@ -1,0 +1,87 @@
+pipeline {
+    agent any
+    environment {
+        TF_IN_AUTOMATION = 'true'
+        AWS_SHARED_CREDENTIALS_FILE='/home/ubuntu/.aws/credentials'
+    }
+    stages {
+        stage('Init') {
+            steps {
+                sh 'ls'
+                sh 'cat $BRANCH_NAME.tfvars'
+                sh 'terraform init -no-color'
+            }
+        }
+        stage('Plan') {
+            steps {
+                sh 'terraform plan -no-color'
+            }
+        }
+        stage('Validate Apply') {
+            when {
+                beforeInput true
+                branch "dev"
+            }
+            input {
+                message "Do you want to Apply this plan?"
+                ok "Apply"
+            }
+            steps {
+                echo 'Apply Accepted'
+            }
+        }
+        stage('Apply') {
+            steps {
+                sh 'terraform apply -auto-approve -no-color -var-file="$BRANCH_NAME.tfvars"'
+            }
+        }
+        stage('EC2 Wait') {
+            steps {
+                 sh 'aws ec2 wait instance-status-ok --region us-west-1'
+            }
+        }
+        stage('Validate Ansible') {
+            when {
+                beforeInput true
+                branch "dev"
+            }
+            input {
+                message "Do you want to run Ansible?"
+                ok "Run Ansible"
+            }
+            steps {
+                echo 'Ansible Approved'
+            }
+        }
+        stage('Ansible') {
+            steps {
+                ansiblePlaybook(credentialsId: 'mtckey', inventory: 'aws_hosts', playbook: 'playbooks/main-playbook.yml')
+            }
+        }
+        stage('Validate Destroy') {
+            input {
+                message "Do you want to destroy?"
+                ok "Destroy"
+            }
+            steps {
+                echo 'Destroy Approved'
+            }
+        }
+        stage('Destroy') {
+            steps {
+                sh 'terraform destroy -auto-approve -no-color -var-file="$BRANCH_NAME.tfvars"'
+            }
+        }
+    }
+    post {
+        success {
+            echo 'Success!'
+        }
+        failure {
+            sh 'terraform destroy -auto-approve -no-color -var-file="$BRANCH_NAME.tfvars"'
+        }
+        aborted {
+            sh 'terraform destroy -auto-approve -no-color -var-file="$BRANCH_NAME.tfvars"'
+        }
+    }
+}
