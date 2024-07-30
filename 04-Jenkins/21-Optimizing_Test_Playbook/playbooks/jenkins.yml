@@ -4,6 +4,11 @@
   become: yes
   
   tasks:
+  - name: Install Java
+    apt:
+      name: openjdk-11-jdk
+      state: present
+      update_cache: yes
   - name: download apt key
     ansible.builtin.apt_key:
       url: https://pkg.jenkins.io/debian-stable/jenkins.io.key

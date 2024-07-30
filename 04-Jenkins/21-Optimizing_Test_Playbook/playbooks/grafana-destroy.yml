@@ -1,6 +1,6 @@
 ---
 - name: Install Grafana
-  hosts: hosts
+  hosts: localhost
   become: yes
   
   tasks:
