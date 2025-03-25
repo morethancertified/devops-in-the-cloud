@@ -4,9 +4,14 @@
   become: yes
   
   tasks:
+  - name: Install Java
+    apt:
+      name: openjdk-17-jdk
+      state: present
+      update_cache: yes
   - name: download apt key
     ansible.builtin.apt_key:
-      url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+      url: https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key
       state: present
   - name: Add Jenkins repo to sources.list
     ansible.builtin.apt_repository:
@@ -17,3 +22,8 @@
     apt:
       name: jenkins
       update_cache: yes
+  - name: start Jenkins
+    ansible.builtin.service:
+      name: jenkins
+      state: started
+      enabled: yes
