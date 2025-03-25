@@ -5,6 +5,7 @@
   vars:
     listen_address: 0.0.0.0
     listen_port: 9090
+    prom_version: 2.54.0
   
   tasks:
   - name: download apt key
@@ -27,11 +28,11 @@
       state: started
   - name: Download Prometheus
     get_url:
-      url: https://github.com/prometheus/prometheus/releases/download/v2.30.3/prometheus-2.30.3.linux-amd64.tar.gz
+      url: https://github.com/prometheus/prometheus/releases/download/v{{ prom_version }}/prometheus-{{ prom_version }}.linux-amd64.tar.gz
       dest: /home/ubuntu/
   - name: Unzip Prometheus
     ansible.builtin.unarchive:
-      src: /home/ubuntu/prometheus-2.30.3.linux-amd64.tar.gz
+      src: /home/ubuntu/prometheus-{{ prom_version }}.linux-amd64.tar.gz
       dest: /home/ubuntu/
       remote_src: yes
   - name: Create Prometheus group
@@ -72,16 +73,16 @@
       owner: prometheus
       group: prometheus
     loop:
-      - /home/ubuntu/prometheus-2.30.3.linux-amd64/prometheus
-      - /home/ubuntu/prometheus-2.30.3.linux-amd64/promtool
+      - /home/ubuntu/prometheus-{{ prom_version }}.linux-amd64/prometheus
+      - /home/ubuntu/prometheus-{{ prom_version }}.linux-amd64/promtool
   - name: Copy more files 
     ansible.builtin.copy:
       src: "{{ item }}"
       dest: /etc/prometheus
       remote_src: yes
     loop:
-      - /home/ubuntu/prometheus-2.30.3.linux-amd64/consoles
-      - /home/ubuntu/prometheus-2.30.3.linux-amd64/console_libraries
+      - /home/ubuntu/prometheus-{{ prom_version }}.linux-amd64/consoles
+      - /home/ubuntu/prometheus-{{ prom_version }}.linux-amd64/console_libraries
   - name: Create Config File
     ansible.builtin.template:
       src: prometheus.yml.j2
